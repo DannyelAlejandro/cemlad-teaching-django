@@ -1,0 +1,874 @@
+openapi: 3.0.3
+info:
+  title: CEMLAD Learning API
+  version: 1.0.0
+  description: "\n    # API REST para Gestión de Productos y Carritos\n    \n    Documentación\
+    \ completa de endpoints y contrato de datos para consumir desde Frontend.\n  \
+    \  \n    ## Características principales:\n    - Gestión de productos (CRUD)\n\
+    \    - Carrito de compras\n    - Procesamiento de pagos (Efectivo/Tarjeta)\n \
+    \   - Respuestas tipificadas con DTOs\n    "
+  contact:
+    name: CEMLAD API Support
+    email: support@cemlad.com
+  license:
+    name: MIT
+paths:
+  /:
+    get:
+      operationId: root_retrieve
+      description: Verifica que la API está activa y funcionando correctamente.
+      summary: Welcome - Health Check
+      tags:
+      - System
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: API is running successfully
+  /api/schema/:
+    get:
+      operationId: schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - ckb
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - ht
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - ms
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - ug
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      tags:
+      - schema
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /carts:
+    get:
+      operationId: carts_retrieve
+      description: Obtiene la lista completa de carritos o crea un nuevo carrito de
+        compras.
+      summary: List and Create Shopping Carts
+      tags:
+      - Carts
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cart'
+          description: Lista de todos los carritos disponibles
+    post:
+      operationId: carts_create
+      description: |-
+        List all carts or create a new cart.
+
+        GET: Retrieve all shopping carts
+        POST: Create a new shopping cart
+
+        **Ejemplo Request (POST):**
+        ```json
+        {
+            "customer_id": 100,
+            "status": "ACT",
+            "total": 0.0
+        }
+        ```
+      tags:
+      - Carts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CartCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CartCreate'
+        required: true
+      security:
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+              examples:
+                Success:
+                  value:
+                    id: 1
+                    customer_id: 100
+                    status: ACT
+                    total: 0.0
+                    products: []
+          description: Carrito creado exitosamente
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Falló la creación del carrito
+  /carts/{cart_id}:
+    get:
+      operationId: carts_retrieve_2
+      description: Obtiene los detalles de un carrito específico incluyendo productos.
+      summary: Retrieve Shopping Cart Details
+      parameters:
+      - in: path
+        name: cart_id
+        schema:
+          type: integer
+        description: ID único del carrito a recuperar
+        required: true
+      tags:
+      - Carts
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+              examples:
+                Success:
+                  value:
+                    id: 1
+                    customer_id: 100
+                    status: ACT
+                    total: 2299.98
+                    products:
+                    - product_id: 1
+                      product_name: Laptop
+                      price: 999.99
+                    - product_id: 2
+                      product_name: Mouse
+                      price: 29.99
+          description: Detalles del carrito
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Carrito no encontrado
+  /carts/{cart_id}/pay:
+    post:
+      operationId: carts_pay_create
+      description: Procesa el pago del carrito usando el método de pago especificado
+        (Efectivo o Tarjeta).
+      summary: Process Cart Payment
+      parameters:
+      - in: path
+        name: cart_id
+        schema:
+          type: integer
+        description: ID del carrito a pagar
+        required: true
+      tags:
+      - Payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartPay'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CartPay'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CartPay'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+              examples:
+                Success:
+                  value:
+                    message: Pago procesado exitosamente con CASH
+          description: Pago procesado exitosamente
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Error:
+                  value:
+                    error: Invalid payment method or cart not found
+          description: Falló procesar el pago
+  /carts/{cart_id}/products:
+    post:
+      operationId: carts_products_create
+      description: Agrega un producto específico al carrito de compras indicado.
+      summary: Add Product to Shopping Cart
+      parameters:
+      - in: path
+        name: cart_id
+        schema:
+          type: integer
+        description: ID del carrito
+        required: true
+      tags:
+      - Carts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartAddProduct'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CartAddProduct'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CartAddProduct'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+              examples:
+                Success:
+                  value:
+                    id: 1
+                    customer_id: 100
+                    status: ACT
+                    total: 1029.98
+                    products:
+                    - product_id: 1
+                      product_name: Laptop
+                      price: 999.99
+                    - product_id: 2
+                      product_name: Mouse
+                      price: 29.99
+          description: Carrito actualizado con el nuevo producto
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Falló agregar el producto al carrito
+  /carts/{cart_id}/products/{product_id}:
+    delete:
+      operationId: carts_products_destroy
+      description: Elimina un producto específico del carrito de compras.
+      summary: Remove Product from Shopping Cart
+      parameters:
+      - in: path
+        name: cart_id
+        schema:
+          type: integer
+        description: ID del carrito
+        required: true
+      - in: path
+        name: product_id
+        schema:
+          type: integer
+        description: ID del producto a eliminar
+        required: true
+      tags:
+      - Carts
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+          description: Carrito actualizado sin el producto eliminado
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Falló eliminar el producto del carrito
+  /products:
+    get:
+      operationId: products_retrieve
+      description: Obtiene la lista completa de productos o crea un nuevo producto.
+      summary: List and Create Products
+      tags:
+      - Products
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductResponse'
+          description: Lista de todos los productos disponibles
+    post:
+      operationId: products_create
+      description: |-
+        List all products or create a new product.
+
+        GET: Retrieve all products
+        POST: Create a new product
+
+        **Ejemplo Request (POST):**
+        ```json
+        {
+            "name": "Laptop Dell XPS",
+            "code": "SKU001",
+            "price": 1299.99
+        }
+        ```
+      tags:
+      - Products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Product'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Product'
+        required: true
+      security:
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+              examples:
+                Success:
+                  value:
+                    id: 1
+                    name: Laptop
+                    code: SKU001
+                    price: 999.99
+          description: Producto creado exitosamente
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Error:
+                  value:
+                    error: Failed to create product
+          description: Falló la creación del producto
+  /products/{product_id}:
+    get:
+      operationId: products_retrieve_2
+      description: Obtiene los detalles de un producto específico por su ID.
+      summary: Retrieve Product Details
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: integer
+        description: ID único del producto a recuperar
+        required: true
+      tags:
+      - Products
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+              examples:
+                Success:
+                  value:
+                    id: 1
+                    name: Laptop
+                    code: SKU001
+                    price: 999.99
+          description: Detalles del producto
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                NotFound:
+                  value:
+                    error: Product not found
+                  summary: Not Found
+          description: Producto no encontrado
+    put:
+      operationId: products_update
+      description: Obtiene los detalles de un producto específico por su ID.
+      summary: Retrieve Product Details
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: integer
+        description: ID único del producto a recuperar
+        required: true
+      tags:
+      - Products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Product'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Product'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+              examples:
+                Success:
+                  value:
+                    id: 1
+                    name: Laptop
+                    code: SKU001
+                    price: 999.99
+          description: Detalles del producto
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                NotFound:
+                  value:
+                    error: Product not found
+                  summary: Not Found
+          description: Producto no encontrado
+    patch:
+      operationId: products_partial_update
+      description: Obtiene los detalles de un producto específico por su ID.
+      summary: Retrieve Product Details
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: integer
+        description: ID único del producto a recuperar
+        required: true
+      tags:
+      - Products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProduct'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProduct'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProduct'
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+              examples:
+                Success:
+                  value:
+                    id: 1
+                    name: Laptop
+                    code: SKU001
+                    price: 999.99
+          description: Detalles del producto
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                NotFound:
+                  value:
+                    error: Product not found
+                  summary: Not Found
+          description: Producto no encontrado
+    delete:
+      operationId: products_destroy
+      description: Obtiene los detalles de un producto específico por su ID.
+      summary: Retrieve Product Details
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: integer
+        description: ID único del producto a recuperar
+        required: true
+      tags:
+      - Products
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+              examples:
+                Success:
+                  value:
+                    id: 1
+                    name: Laptop
+                    code: SKU001
+                    price: 999.99
+          description: Detalles del producto
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                NotFound:
+                  value:
+                    error: Product not found
+                  summary: Not Found
+          description: Producto no encontrado
+components:
+  schemas:
+    Cart:
+      type: object
+      description: |-
+        Serializer para carrito de compras.
+
+        Representa un carrito con sus productos y estado.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          description: ID único del carrito (auto-generado)
+        customer_id:
+          type: integer
+          description: ID del cliente propietario del carrito
+        status:
+          type: string
+          description: 'Estado del carrito: ACT (Activo), PAID (Pagado), CANC (Cancelado)'
+          maxLength: 10
+        total:
+          type: number
+          format: double
+          description: Total del carrito (suma de todos los productos)
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+          readOnly: true
+          description: Lista de productos en el carrito
+      required:
+      - customer_id
+      - id
+      - products
+      - status
+      - total
+    CartAddProduct:
+      type: object
+      description: Serializer para agregar un producto a un carrito.
+      properties:
+        product_id:
+          type: integer
+          description: ID del producto a agregar al carrito
+      required:
+      - product_id
+    CartCreate:
+      type: object
+      description: Serializer para crear un nuevo carrito.
+      properties:
+        customer_id:
+          type: integer
+          description: ID del cliente propietario del carrito
+        status:
+          type: string
+          default: ACT
+          description: 'Estado inicial del carrito (por defecto: ACT)'
+          maxLength: 10
+        total:
+          type: number
+          format: double
+          default: 0.0
+          description: 'Total inicial del carrito (por defecto: 0.0)'
+      required:
+      - customer_id
+    CartPay:
+      type: object
+      description: Serializer para procesar el pago de un carrito.
+      properties:
+        payment_method:
+          allOf:
+          - $ref: '#/components/schemas/PaymentMethodEnum'
+          description: |-
+            Método de pago: CASH (Efectivo) o CARD (Tarjeta)
+
+            * `CASH` - CASH
+            * `CARD` - CARD
+      required:
+      - payment_method
+    ErrorResponse:
+      type: object
+      description: Respuesta estándar de error.
+      properties:
+        error:
+          type: string
+          description: Mensaje descriptivo del error
+      required:
+      - error
+    PatchedProduct:
+      type: object
+      description: |-
+        Serializer para productos del catálogo.
+
+        Se utiliza tanto para listar productos como para crear nuevos.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          description: ID único del producto (auto-generado)
+        name:
+          type: string
+          description: Nombre del producto (máximo 255 caracteres)
+          maxLength: 255
+        code:
+          type: string
+          description: Código SKU único del producto (máximo 50 caracteres)
+          maxLength: 50
+        price:
+          type: number
+          format: double
+          description: Precio unitario del producto en formato decimal
+    PaymentMethodEnum:
+      enum:
+      - CASH
+      - CARD
+      type: string
+      description: |-
+        * `CASH` - CASH
+        * `CARD` - CARD
+    PaymentResponse:
+      type: object
+      description: Respuesta del procesamiento de pago.
+      properties:
+        message:
+          type: string
+          description: Mensaje con el resultado del pago
+      required:
+      - message
+    Product:
+      type: object
+      description: |-
+        Serializer para productos del catálogo.
+
+        Se utiliza tanto para listar productos como para crear nuevos.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          description: ID único del producto (auto-generado)
+        name:
+          type: string
+          description: Nombre del producto (máximo 255 caracteres)
+          maxLength: 255
+        code:
+          type: string
+          description: Código SKU único del producto (máximo 50 caracteres)
+          maxLength: 50
+        price:
+          type: number
+          format: double
+          description: Precio unitario del producto en formato decimal
+      required:
+      - code
+      - id
+      - name
+      - price
+    ProductResponse:
+      type: object
+      description: Respuesta de producto con todos los campos.
+      properties:
+        id:
+          type: integer
+          description: ID único del producto
+        name:
+          type: string
+          description: Nombre del producto
+        code:
+          type: string
+          description: Código SKU del producto
+        price:
+          type: number
+          format: double
+          description: Precio unitario
+      required:
+      - code
+      - id
+      - name
+      - price
+servers:
+- url: http://localhost:8000
+  description: Development server
+- url: http://localhost:3000
+  description: Local development
